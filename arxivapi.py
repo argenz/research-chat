@@ -1,7 +1,6 @@
 import urllib, urllib.request
 import feedparser
 import logging as log 
-from papers import Papers
 
 log.basicConfig(level=log.INFO, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
@@ -9,14 +8,15 @@ class ArxivAPI(object):
     def __init__(self):
         self.url = f'http://export.arxiv.org/api/query?'
 
-    def get_papers(self, search_query, max_results=100):
-        response = self.search_cat(search_query, max_results=max_results)
-        response_dict = self.xml_to_dict(response)
-        papers = Papers(response_dict)
-        return papers
+    def get_abstracts(self, search_query, from_date, to_date, start=0, max_results=10000):
+        response = self.search_cat(search_query, from_date, to_date, start, max_results)
+        abstracts = self.xml_to_dict(response)
+        return abstracts
 
-    def search_cat(self, search_query, start=0, max_results=100):
-        query = 'search_query=%s&start=%i&max_results=%i' % (search_query,
+    def search_cat(self, search_query, from_date, to_date, start, max_results):
+        query = 'search_query=%s+AND+submittedDate:[%s+TO+%s]&start=%i&max_results=%i' % (search_query, 
+                                                            from_date, 
+                                                            to_date,
                                                             start,
                                                             max_results)
         full_url = self.url+query
@@ -35,7 +35,8 @@ class ArxivAPI(object):
                                                           'authors': entry.author,
                                                           'summary': entry.summary,
                                                           'published': entry.published,
-                                                          'link': entry.link}    
+                                                          'link': entry.link,
+                                                          'id': entry.id.split('/abs/')[-1]}    
         return response_dict
     
     
