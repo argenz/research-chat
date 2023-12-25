@@ -1,6 +1,8 @@
 import urllib, urllib.request
 import feedparser
 import logging as log 
+import json
+from app.utils import clean_text
 
 log.basicConfig(level=log.INFO, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
@@ -31,13 +33,21 @@ class ArxivAPI(object):
         feed = feedparser.parse(response_xlm)
 
         for entry in feed.entries:
-            response_dict[entry.id.split('/abs/')[-1]] = {'title': entry.title,
-                                                          'authors': entry.author,
-                                                          'summary': entry.summary,
+            response_dict[entry.id.split('/abs/')[-1]] = {'title': clean_text(entry.title),
+                                                          'authors': clean_text(entry.author),
+                                                          'summary': clean_text(entry.summary),
                                                           'published': entry.published,
                                                           'link': entry.link,
                                                           'id': entry.id.split('/abs/')[-1]}    
+        
+        #self.to_json(response_dict, "arxiv-download")
         return response_dict
+    
+    # def to_json(self, response_dict, filename): 
+    #     with open(f'{filename}.json', 'w') as f:
+    #         # write the dictionary to the file in JSON format
+    #         json.dump(response_dict, f)
+    #     log.info("JSON saved.")
     
     
 

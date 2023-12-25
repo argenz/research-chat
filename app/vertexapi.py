@@ -1,4 +1,4 @@
-from vertexai.language_models import TextGenerationModel
+from vertexai.language_models import ChatModel, InputOutputTextPair
 from google.cloud import aiplatform
 from typing import Optional
 import vertexai
@@ -29,9 +29,10 @@ class VertexAPI(object):
         vertexai.init(project=self.project, location=location)
 
     def authenticate(self):
-        return google.auth.default()    
+        return google.auth.default()  
 
-    def get_completion(self, prompt, temperature: float=0.6, max_output_tokens: int = 500, top_p: float = 0.8, top_k: int = 40) -> str:
+    def start_chat_session(self, context_prompt, temperature: float=0.6, max_output_tokens: int = 500, top_p: float = 0.8, top_k: int = 40) -> str:
+        chat_model = ChatModel.from_pretrained("chat-bison@001")
         parameters = {
             "temperature": temperature,  # Temperature controls the degree of randomness in token selection.
             "max_output_tokens": max_output_tokens,  # Token limit determines the maximum amount of text output.
@@ -39,12 +40,18 @@ class VertexAPI(object):
             "top_k": top_k,  # A top_k of 1 means the selected token is the most probable among all tokens.
         }
 
-        model = TextGenerationModel.from_pretrained("text-bison@001")
-
-        response = model.predict(
-            prompt,
-            **parameters,
+        self.chat_session = chat_model.start_chat(
+            context=context_prompt,
+            # ,examples=[
+            #     InputOutputTextPair(
+            #         input_text="How many moons does Mars have?",
+            #         output_text="The planet Mars has two moons, Phobos and Deimos.",
+            #     ),
+            # ],
+            **parameters
         )
-        print(f"Response from Model: {response.text}")
 
+    def get_completion(self, user_question) -> str:
+        response = self.chat_session.send_message(user_question)
+        print(f"Response from Model: {response.text}")
         return response.text
