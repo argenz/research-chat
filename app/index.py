@@ -1,6 +1,6 @@
 
-from app.arxivapi import ArxivAPI
-from app.qdrantapi import QdrantAPI
+from arxivapi import ArxivAPI
+from qdrantapi import QdrantAPI
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from utils import split_texts_in_dict

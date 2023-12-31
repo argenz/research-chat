@@ -2,7 +2,7 @@ import urllib, urllib.request
 import feedparser
 import logging as log 
 import json
-from app.utils import clean_text
+from utils import clean_text
 
 log.basicConfig(level=log.INFO, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 

@@ -98,7 +98,7 @@ class QdrantAPI(object):
         # TODO: if collection doesn't exist, create collection
         return self.client.search(
         collection_name=collection_name,
-        query_vector=self.get_embedding(query).tolist(),
+        query_vector=self.get_embedding(query),
         limit=k,
         )
         
