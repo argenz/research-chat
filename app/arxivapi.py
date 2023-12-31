@@ -40,7 +40,7 @@ class ArxivAPI(object):
                                                           'link': entry.link,
                                                           'id': entry.id.split('/abs/')[-1]}    
         
-        #self.to_json(response_dict, "arxiv-download")
+        # self.to_json(response_dict, "arxiv-download")
         return response_dict
     
     # def to_json(self, response_dict, filename): 
