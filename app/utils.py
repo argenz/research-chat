@@ -1,5 +1,6 @@
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 import re
+import itertools
 
 def split_texts_in_dict(documents_dict: dict): 
     split_documents_dict = {}
@@ -25,3 +26,11 @@ def split_texts(texts: str, chunk_size: int = 500, chunk_overlap: int = 50, leng
 def clean_text(text): 
      pattern = r'["\'{}]'
      return re.sub(pattern, '', text)
+
+def chunked(it, size):
+    it = iter(it)
+    while True:
+        p = tuple(itertools.islice(it, size))
+        if not p:
+            break
+        yield p

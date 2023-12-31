@@ -1,10 +1,11 @@
 
-from app.arxivapi import ArxivAPI
-from app.qdrantapi import QdrantAPI
+from arxivapi import ArxivAPI
+from qdrantapi import QdrantAPI
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
-from app.utils import split_texts_in_dict
+from utils import split_texts_in_dict
 import logging as log
+import json
 
 log.basicConfig(level=log.INFO, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
@@ -16,9 +17,12 @@ class Index(object):
     def add_abstracts_by_date(self, from_date: datetime, to_date: datetime, category: str, collection_name: str): 
         # get abstracts from API
         result = self.arxiv_api.get_abstracts(category, 
-                          from_date=from_date.strftime('%Y%m%d')+"000000", 
-                          to_date=to_date.strftime('%Y%m%d')+"000000")
+                         from_date=from_date.strftime('%Y%m%d')+"000000", 
+                         to_date=to_date.strftime('%Y%m%d')+"000000")
         
+        # with open("downloaded_file.json", "r") as f: 
+        #     result = json.load(f)
+
         # split text
         result = split_texts_in_dict(result)
 

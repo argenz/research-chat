@@ -1,12 +1,11 @@
 from qdrant_client import QdrantClient, models
-from qdrant_client.http.models import PointStruct
-from sentence_transformers import SentenceTransformer
 from vertexai.language_models import TextEmbeddingInput, TextEmbeddingModel
+from utils import chunked
 import os
 import uuid
 import time
-import pandas as pd 
 import logging as log
+
 
 log.basicConfig(level=log.INFO, format='%(asctime)s %(levelname)s %(message)s', datefmt='%m/%d/%Y %I:%M:%S %p')
 
@@ -18,7 +17,7 @@ class QdrantAPI(object):
         self.encoder = TextEmbeddingModel.from_pretrained("textembedding-gecko@002")
         self.EMBDEDDING_SIZE = 768 
              
-#### Creating collection
+    #### Creating collection
     def create_collection(self, collection_name: str, recreate=False): 
         log.info(f"Creating collection: {collection_name}.")
         if recreate: 
@@ -44,50 +43,41 @@ class QdrantAPI(object):
                 ),
             )
          
-## Handling index
-    def insert_documents(self, collection_name: str, documents_dict: dict):              
-            #idxs, embeddings, payloads = self.organize_upload(documents_dict)
+    ## Handling index
+    def insert_batch(self, collection_name: str, documents_batch: dict):              
+            points = []
+            i = 1 #TBR
+            for _, doc_dict in documents_batch:
 
-            for num, item in enumerate(documents_dict.items()): 
-                _, doc_dict = item 
+                log.info(f"Embedding document {i}/{len(documents_batch)}.") #TBR
+                i += 1 #TBR
+
                 idx = str(uuid.uuid4())
-
-                log.info(f"Embedding document {num}/{len(documents_dict.items())}.")
-
                 text_embedding = self.get_embedding(doc_dict["summary"], isquery=False)
+                points.append(models.PointStruct(id=idx, vector=text_embedding, payload=doc_dict))
                 
-                log.info("Uploading point to Qdrant.")
+            log.info("Uploading points to Qdrant.")
+            self.upsert_to_qdrant(collection_name, points)
 
-                self.client.upsert(
-                    collection_name=collection_name,
-                    points=[
-                            models.PointStruct(
-                                id=idx,
-                                payload=doc_dict,
-                                vector=text_embedding,
-                            ),
-                    ],
-                )
-            
-    # def organize_upload(self, documents_dict: dict): 
-    #         embeddings = []
-    #         idxs = []
-    #         payloads = []
+    def upsert_to_qdrant(self, collection_name, points): 
+        try: 
+            self.client.upsert(
+            collection_name=collection_name,
+            points=points
+            ) 
+        except Exception as e:
+            log.info(f"Probably response handling exception: {e}")
+            log.info(f"Trying again...")
+            self.upsert_to_qdrant(collection_name, points)
 
-    #         for num, item in enumerate(documents_dict.items()): 
-    #             _, doc_dict = item 
-    #             idx = str(uuid.uuid4())
 
-    #             log.info(f"Embedding document {num}/{len(documents_dict.items())}.")
-
-    #             text_embedding = self.get_embedding(doc_dict["summary"], isquery=False)
-                
-    #             embeddings.append(text_embedding)
-    #             idxs.append(idx)
-    #             payloads.append(doc_dict)
-
-    #         return idxs, embeddings, payloads
-
+    def insert_documents(self, collection_name: str, documents_dict: dict, batch_size=8):
+        batch_n = 1 #TBR
+        for chunk in chunked(documents_dict.items(), batch_size): 
+            log.info(f"Inserting batch {batch_n}/{int(len(documents_dict)/batch_size)}") #TBR
+            self.insert_batch(collection_name, chunk)
+            batch_n += 1 #TBR
+        
     
     def get_embedding(self, text: str, isquery=True): 
         try: 
@@ -108,7 +98,7 @@ class QdrantAPI(object):
         # TODO: if collection doesn't exist, create collection
         return self.client.search(
         collection_name=collection_name,
-        query_vector=self.get_embedding(query).tolist(),
+        query_vector=self.get_embedding(query),
         limit=k,
         )
         
