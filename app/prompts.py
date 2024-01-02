@@ -11,3 +11,24 @@ Research Papers:
 
 Follow the previous instructions and take time to think.
 """
+
+standalone_question_prompt = """
+Given a user question and the chat history, generate a standalone question that incorporates the context necessary from the previous conversation in the standalone question. 
+
+For example: 
+#################
+CHAT HISTORY: 
+USER: Who wrote the Harry Potter saga?  
+AI: J.K. Rowling
+USER QUESTION: How about Lord of the Rings? 
+STANDALONE QUESTION: Who wrote the Lord of the Rings? 
+##################
+
+Okay now, it's your turn. Reply only with the standalone question. 
+##################
+CHAT HISTORY: 
+{chat_history}
+##################
+USER QUESTION: {user_question}
+STANDALONE QUESTION:
+"""

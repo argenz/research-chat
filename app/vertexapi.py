@@ -1,4 +1,4 @@
-from vertexai.language_models import ChatModel, InputOutputTextPair
+from vertexai.language_models import ChatModel, TextGenerationModel, InputOutputTextPair
 from google.cloud import aiplatform
 from typing import Optional
 import vertexai
@@ -27,11 +27,13 @@ class VertexAPI(object):
             service_account=service_account,
         )
         vertexai.init(project=self.project, location=location)
+        self.chat_session = None
+        self.text_model = None
 
     def authenticate(self):
         return google.auth.default()  
 
-    def start_chat_session(self, context_prompt, temperature: float=0.6, max_output_tokens: int = 500, top_p: float = 0.8, top_k: int = 40) -> str:
+    def start_chat_model(self, context_prompt, temperature: float=0.6, max_output_tokens: int = 500, top_p: float = 0.8, top_k: int = 40) -> str:
         chat_model = ChatModel.from_pretrained("chat-bison@001")
         parameters = {
             "temperature": temperature,  # Temperature controls the degree of randomness in token selection.
@@ -51,7 +53,32 @@ class VertexAPI(object):
             **parameters
         )
 
-    def get_completion(self, user_question) -> str:
+    def get_completion(self, context_prompt, user_question) -> str:
+        
+        # always need to get new chat session cause context is new
+        self.start_chat_model(context_prompt)
+
         response = self.chat_session.send_message(user_question)
         print(f"Response from Model: {response.text}")
         return response.text
+    
+    def start_text_model(self, temperature: float=0.6, max_output_tokens: int = 500, top_p: float = 0.8, top_k: int = 40) -> str:
+        self.text_model = TextGenerationModel.from_pretrained("text-bison@001")
+
+        self.text_parameters = {
+            "temperature": temperature,
+            "max_output_tokens": max_output_tokens,
+            "top_p": top_p,
+            "top_k": top_k,
+        }
+
+    def get_standalone_question(self, standalone_question_prompt):
+        if self.text_model is None: self.start_text_model()
+
+        response = self.text_model.predict(standalone_question_prompt,
+            **self.text_parameters,
+        )
+        return response.text
+        
+        
+        
