@@ -9,4 +9,4 @@ app/
 - utils.py contains text splitting, cleaning and iterator utils.
 - requirements.txt contains the required packages.
 
-create_index.py is the file I ran to create the index. TODO: create recurring jobs to add new papers periodically. 
+update_index.py is the file I ran to create the index. TODO: create recurring jobs to add new papers periodically. 
