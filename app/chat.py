@@ -23,7 +23,7 @@ qdrant_client = QdrantAPI()
 #     "[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/streamlit/llm-examples?quickstart=1)"
 
 st.title("💬 Chat over academic research papers.")
-st.caption("🚀 I'm a chatbot that draws knwoledge from abstracts of papers published on arXiv in 2023 in the field of information retrieval (cs.IR).")
+st.caption("🚀 I'm a chatbot that draws knowledge from abstracts of papers published on arXiv in 2023 in the field of information retrieval (cs.IR).")
 
 
 if "messages" not in st.session_state:
@@ -43,7 +43,6 @@ if prompt := st.chat_input():
 
     standalone_question = vertex_api.get_standalone_question(standalone_question_prompt)
     log.info(f"Standalone questiont: {standalone_question}")
-
 
     # # RAG 
     # semantic search 
